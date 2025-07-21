@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>出菜進度看板</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    #progress { font-size: 1.25rem; }
+  </style>
+</head>
+<body>
+  <h1>🔔 出菜進度</h1>
+  <div id="progress">載入中…</div>
+
+  <script>
+    // 替換成你的 Apps Script Web App URL
+    const API = 'https://script.google.com/macros/s/AKfycbxZ4ZWCiYz7H-LuBhQtt_2HCKlJ_nlJT7S-DhdXvrGjzaTWCQQnmSEhcYI5yjDKJNjNrg/exec';
+
+    // JSONP callback
+    function handle(data) {
+      const idx = data.currentIndex;
+      const item = data.items[idx] || { name: '—', eta: 0 };
+      const elapsed = Math.floor((Date.now() - new Date(data.startTime)) / 60000);
+      document.getElementById('progress').innerHTML =
+        `第 <strong>${idx+1}</strong> 道：${item.name}<br>` +
+        `已用 <strong>${elapsed}</strong> 分鐘，預估 ${item.eta} 分鐘`;
+    }
+
+    // 動態插入 JSONP <script>
+    function fetchProgress() {
+      const s = document.createElement('script');
+      s.src = `${API}?action=status&callback=handle&ts=${Date.now()}`;
+      document.body.appendChild(s);
+      // 用完可移除，避免檔案累積
+      s.onload = () => document.body.removeChild(s);
+    }
+
+    // 初次載入與每分鐘更新
+    window.onload = fetchProgress;
+    setInterval(fetchProgress, 60 * 1000);
+  </script>
+</body>
+</html>
+
