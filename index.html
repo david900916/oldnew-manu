@@ -2,46 +2,39 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>出菜進度看板</title>
-  <style>
-    body { font-family: sans-serif; padding: 2rem; }
-    #progress { font-size: 1.25rem; }
-  </style>
+  <title>出菜進度看板—診斷版</title>
 </head>
 <body>
-  <h1>🔔 出菜進度</h1>
+  <h1>🔔 出菜進度（診斷）</h1>
   <div id="progress">載入中…</div>
 
   <script>
-    // 替換成你的 Apps Script Web App URL
     const API = 'https://script.google.com/macros/s/AKfycbzmJwlIL0fh-XbbD1QTa4CcJdjhOwXLFYO1NxV00F2FAfqdyqGf4XxPi6Car2dt-kkguw/exec';
 
-    // JSONP callback
     function handle(data) {
-      console.log("JSONP callback 收到資料：", data);
+      console.log('✅ JSONP callback data:', data);
       const idx = data.currentIndex;
-      const item = data.items[idx] || { name: '—', eta: 0 };
+      const it  = data.items[idx] || { name: '—', eta: 0 };
       const elapsed = Math.floor((Date.now() - new Date(data.startTime)) / 60000);
       document.getElementById('progress').innerHTML =
-        `第 <strong>${idx+1}</strong> 道：${item.name}<br>` +
-        `已用 <strong>${elapsed}</strong> 分鐘，預估 ${item.eta} 分鐘`;
+        `第 ${idx+1} 道：${it.name} （已用 ${elapsed} 分鐘，預估 ${it.eta} 分鐘）`;
     }
 
-    // 動態插入 JSONP <script>
     function fetchProgress() {
+      // 建立 script 元素
       const s = document.createElement('script');
-  s.src = `${API}?action=status&callback=handle&ts=${Date.now()}`;
-  s.onload  = () => console.log("JSONP script 載入成功");
-  s.onerror = () => console.error("JSONP script 載入失敗");
-  document.body.appendChild(s);
-      // 用完可移除，避免檔案累積
-      s.onload = () => document.body.removeChild(s);
+      // 在 append 前綁定 onload/onerror
+      s.onload  = () => console.log('✅ JSONP script 載入成功');
+      s.onerror = () => console.error('❌ JSONP script 載入失敗');
+      // 設定 src
+      s.src = `${API}?action=status&callback=handle&ts=${Date.now()}`;
+      // 最後 append
+      document.body.appendChild(s);
     }
 
-    // 初次載入與每分鐘更新
-    window.onload = fetchProgress;
-    setInterval(fetchProgress, 60 * 1000);
+    // 頁面載入與每分鐘都跑一次
+    window.addEventListener('load', fetchProgress);
+    setInterval(fetchProgress, 60_000);
   </script>
 </body>
 </html>
-
