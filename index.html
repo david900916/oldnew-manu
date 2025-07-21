@@ -18,6 +18,7 @@
 
     // JSONP callback
     function handle(data) {
+      console.log("JSONP callback 收到資料：", data);
       const idx = data.currentIndex;
       const item = data.items[idx] || { name: '—', eta: 0 };
       const elapsed = Math.floor((Date.now() - new Date(data.startTime)) / 60000);
@@ -29,8 +30,10 @@
     // 動態插入 JSONP <script>
     function fetchProgress() {
       const s = document.createElement('script');
-      s.src = `${API}?action=status&callback=handle&ts=${Date.now()}`;
-      document.body.appendChild(s);
+  s.src = `${API}?action=status&callback=handle&ts=${Date.now()}`;
+  s.onload  = () => console.log("JSONP script 載入成功");
+  s.onerror = () => console.error("JSONP script 載入失敗");
+  document.body.appendChild(s);
       // 用完可移除，避免檔案累積
       s.onload = () => document.body.removeChild(s);
     }
